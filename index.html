@@ -18,7 +18,7 @@ body img {
 
 <p>Предлагаю ознакомиться со способами, реализованными мной в приложении на системном уровне</p>
 <ul>
-	<li><!-- МОЖНО ПРОДЕМОНСТРИРОВАТЬ датабайндинг --> Повсемнестное кеширование выборок элементов (<em>$('.active_part .highlighter')</em>), атомарные операции по изменению (вместо всеобщей перерисовки, вместо переделывания больших участков DOM дерева)</li>
+	<li><!-- МОЖНО ПРОДЕМОНСТРИРОВАТЬ датабайндинг --> Повсемнестное кеширование выборок элементов (<em>$('div.active_part span.highlighter')</em>), атомарные операции по изменению (вместо всеобщей перерисовки, вместо переделывания больших участков DOM дерева)</li>
 	<li>Минимизации чтений DOM во время записи изменений состояний </li>
 	<li><!-- МОЖНО ПРОДЕМОНСТРИРОВАТЬ прогресс загрузки и проигрывания файла --> Кеширование размеров и расположения элементов (что спасает от излишниго вычисления при считывании этих значений при наличии других изменений - чтение во время изменения множества частей дерева крайне негативно сказывается на производительности)</li>
 	<li>Аккуратное, не затягивающееся накопление изменений, необходимых произвести в DOM</li>
@@ -35,15 +35,15 @@ body img {
 
 <p>Как это происходит? Например у модели были следующие состояния</p>
 <pre>{
-	artist: "The Killers",
-	track: null
+  artist: "The Killers",
+  track: null
 }</pre>
 мы изменили их этим кодом:
 <pre>track_model.updateState('track', "When You Were Young");</pre>
 стали
 <pre>{
-	artist: "The Killers",
-	track: "When You Were Young"
+  artist: "The Killers",
+  track: "When You Were Young"
 }</pre>
 
 
@@ -53,24 +53,24 @@ body img {
 
 
 <pre>'stch-track': function(new_state, old_state){
-	this.container
-		.find('.song-track-name')
-		.text(new_state)
-		.toggleClass('hidden', !new_state);
+  this.container
+    .find('.song-track-name')
+    .text(new_state)
+    .toggleClass('hidden', !new_state);
 }</pre>
 Если при каждом изменении делать выборку (<em>this.container.find('.song-track-name')</em>), то это негативно скажется на производительности, поэтому чтобы не делать каждый раз выборку сразу меняем например на такой код:  
 <pre>'stch-track': function(new_state, old_state){
-	if (!this.track_name_node){
-		this.track_name_node = this.container.find('.song-track-name'); 
-		// этот же код можно было бы вынести в инициализацию нашей вьюхи
-	}
-	this.track_name_node.text(new_state).toggleClass('hidden', !new_state);
+  if (!this.track_name_node){
+    this.track_name_node = this.container.find('.song-track-name'); 
+    // этот же код можно было бы вынести в инициализацию нашей вьюхи
+  }
+  this.track_name_node.text(new_state).toggleClass('hidden', !new_state);
 }</pre>
 
 <p>Позже, когда я начал делать и спользовать свой шаблонизатор, для этого и других случаев я создал дириктиву <em>(&lt;span pv-anchor="track_name_con" class="song-track-name">&lt;/span>)</em> которая указывает, что нод нужно закешировать в хранилище, потому что я буду обращаться к нему вручную (вместо того, чтобы каждый раз писать императивный код <em>this.container.find('.song-track-name')</em>). Таким образом я могу переписать реакцию на изменения следующим образом</p>
 
 <pre>'stch-track': function(new_state, old_state){
-	this.tpl.ancs['track_name_con'].text(new_state).toggleClass('hidden', !new_state);
+  this.tpl.ancs['track_name_con'].text(new_state).toggleClass('hidden', !new_state);
 }</pre>
 <p>Такие простые изменения обычно описываются другими директивами, а директива <em>pv-anchor</em> использутеся для более сложных изменений (например затрагивающиъ расположение или размер других нодов), для навешивания событий при сложном взаимодействии и других вещей где DOM меняется вручную.</p>
 
@@ -85,8 +85,8 @@ body img {
 
 <p>Позже я обратил внимание на шаблонизатор в быстро набирающем популярность <em>angularjs</em>, который также производил атомарные изменения (data binding). Но интересно для меня было именно то как привязываются изменения состояний к свойствам элементов. Я взял из <em>angularjs</em> код, отвечающий за парсинг выражений и декларативный способ дата байндинга, который оставляет работающим HTML код. Такой способ описания связи позволяет выполнить браузеру самую сложную часть работы (HTML парсинг), а потом многократно использовать результат.</p>
 <pre>&lt;div
-	class="user_tag_page usual_page"
-	pv-class="lula_page usual_page {{!vmp_show && 'hidden'}}"
+  class="user_tag_page usual_page"
+  pv-class="lula_page usual_page {{!vmp_show && 'hidden'}}"
 >&lt;/div></pre>
 
 
@@ -159,8 +159,8 @@ body img {
 
 <p>Чтобы рендеринг происходил в одну итерацию при ручном обновлении нескольких состояний я пользуюсь методом</p>
 <pre>.updateManyStates({
-	artist: 'artist_224',
-	title: 'radnomd title 014'
+  artist: 'artist_224',
+  title: 'radnomd title 014'
 })
 </pre>
 
@@ -205,20 +205,20 @@ body img {
 
 <pre>
 var getAll = function(node) {
-	var result = [];
-	var iteration_list = [ node ];
-	var i = 0;
-	while( iteration_list.length ){
-		var cur_node = iteration_list.shift();
-		if ( cur_node.nodeType != 1 ){
-			continue;
-		}
-		for ( i = 0; i &lt; cur_node.childNodes.length; i++ ) {
-			iteration_list.push( cur_node.childNodes[i] );
-		}
-		result.push( cur_node );
-	}
-	return result;
+  var result = [];
+  var iteration_list = [ node ];
+  var i = 0;
+  while( iteration_list.length ){
+    var cur_node = iteration_list.shift();
+    if ( cur_node.nodeType != 1 ){
+      continue;
+    }
+    for ( i = 0; i &lt; cur_node.childNodes.length; i++ ) {
+      iteration_list.push( cur_node.childNodes[i] );
+    }
+    result.push( cur_node );
+  }
+  return result;
 };
 </pre>
 <pre>
